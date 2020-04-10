@@ -141,6 +141,9 @@ installFile() {
 
   mkdir -p "$HELM_TMP"
   tar xf "$HELM_TMP_FILE" -C "$HELM_TMP"
+  if [ "$PROJECT_NAME" != "helm" ]; then
+    mv $HELM_TMP/$OS-$ARCH/helm $HELM_TMP/$OS-$ARCH/$PROJECT_NAME
+  fi
   HELM_TMP_BIN="$HELM_TMP/$OS-$ARCH/$PROJECT_NAME"
   echo "Preparing to install $PROJECT_NAME into ${HELM_INSTALL_DIR}"
   runAsRoot cp "$HELM_TMP_BIN" "$HELM_INSTALL_DIR"
@@ -181,6 +184,8 @@ help () {
   echo -e "\t[--version|-v <desired_version>] . When not defined it fetches the latest release from GitHub"
   echo -e "\te.g. --version v3.0.0 or -v canary"
   echo -e "\t[--no-sudo]  ->> install without sudo"
+  echo -e "\t[--name|-n <helm_binary_name>] . When not defined defaults to helm otherwise useful for installing v3 side by side v2"
+  echo -e "\te.g. --name helm3 or -n helm3"
 }
 
 # cleanup temporary files to avoid https://github.com/helm/helm/issues/2977
@@ -212,6 +217,14 @@ while [[ $# -gt 0 ]]; do
        ;;
     '--no-sudo')
        USE_SUDO="false"
+       ;;
+    '--name'|-n)
+       shift
+       if [[ $# -ne 0 ]]; then
+           PROJECT_NAME="${1}"
+       else
+           echo -e "Please provide the desired project name. e.g. --name helm3 or -v helm"
+       fi
        ;;
     '--help'|-h)
        help
